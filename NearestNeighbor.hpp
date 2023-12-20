@@ -21,6 +21,7 @@ public:
         return id == other.id && x == other.x && y == other.y;
     }
 };
+
 class LinkedList {
 public:
     std::list<Node> nodes;
@@ -86,6 +87,9 @@ void nearestNeighbor(const std::string& filename) {
 
     // Add the distance from the last node to the starting node
     total_distance += visited_nodes.nodes.back().distance(visited_nodes.nodes.front());
+
+    // Ensure the first node is visited in the end
+    visited_nodes.addNode(visited_nodes.nodes.front());
 
     clock_t end_time = clock();
     double execution_time = double(end_time - start_time) / CLOCKS_PER_SEC * 1000;
