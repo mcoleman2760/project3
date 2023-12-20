@@ -48,7 +48,7 @@ void nearestNeighbor(std::string filename) {
     visitedNodes.push_back(current);
     unvisitedNodes.pop_front();
 
-    double totalDistance = 0.0;
+    int totalDistance = 0.0;
 
     // Visit nodes in order until all nodes are visited
     while (!unvisitedNodes.empty()) {
