@@ -85,6 +85,8 @@ void nearestNeighbor(std::string filename) {
     for (const auto& node : visitedNodes) {
         std::cout << node.id << " ";
     }
+    std::cout << std::endl;
+    std::cout << "Total Distance: " << totalDistance << std::endl;
+    std::cout << "Time in ms: " << elapsedTime << std::endl;
 
-    std::cout << "\nTotal Distance: " << totalDistance << "\nTime in ms: " << elapsedTime << std::endl;
 }
