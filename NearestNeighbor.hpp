@@ -18,6 +18,43 @@ public:
         double dy = y - other.y;
         return std::sqrt(dx * dx + dy * dy);
     }
+
+    bool operator==(const Node& other) const {
+        return id == other.id && x == other.x && y == other.y;
+    }
+};
+
+class LinkedList {
+public:
+    std::list<Node> nodes;
+
+    void addNode(const Node& node) {
+        nodes.push_back(node);
+    }
+
+    void removeNode(const Node& node) {
+        nodes.remove(node);
+    }
+
+    bool empty() const {
+        return nodes.empty();
+    }
+
+    Node front() const {
+        return nodes.front();
+    }
+
+    void popFront() {
+        nodes.pop_front();
+    }
+
+    std::list<Node>::iterator begin() {
+        return nodes.begin();
+    }
+
+    std::list<Node>::iterator end() {
+        return nodes.end();
+    }
 };
 
 void nearestNeighbor(std::string filename) {
@@ -27,7 +64,7 @@ void nearestNeighbor(std::string filename) {
         return;
     }
 
-    std::list<Node> unvisitedNodes;
+    LinkedList unvisitedNodes;
     std::list<Node> visitedNodes;
 
     int id;
@@ -35,7 +72,7 @@ void nearestNeighbor(std::string filename) {
 
     // Read nodes from the file and create a list of unvisited nodes
     while (file >> id >> x >> y) {
-        unvisitedNodes.push_back(Node(id, x, y));
+        unvisitedNodes.addNode(Node(id, x, y));
     }
 
     file.close();
@@ -46,9 +83,9 @@ void nearestNeighbor(std::string filename) {
     // Start from the first node
     Node current = unvisitedNodes.front();
     visitedNodes.push_back(current);
-    unvisitedNodes.pop_front();
+    unvisitedNodes.popFront();
 
-    int totalDistance = 0.0;
+    double totalDistance = 0.0;
 
     // Visit nodes in order until all nodes are visited
     while (!unvisitedNodes.empty()) {
@@ -67,7 +104,7 @@ void nearestNeighbor(std::string filename) {
         // Move to the nearest node
         current = *nearestNode;
         visitedNodes.push_back(current);
-        unvisitedNodes.erase(nearestNode);
+        unvisitedNodes.removeNode(*nearestNode);
 
         // Update total distance
         totalDistance += minDistance;
@@ -88,5 +125,4 @@ void nearestNeighbor(std::string filename) {
     std::cout << std::endl;
     std::cout << "Total Distance: " << totalDistance << std::endl;
     std::cout << "Time in ms: " << elapsedTime << std::endl;
-
 }
