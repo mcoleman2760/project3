@@ -2,8 +2,7 @@
 #include <fstream>
 #include <list>
 #include <ctime>
-#include <math.h>
-#include <algorithm>
+#include <cmath>
 #include <vector>
 
 class Node {
@@ -76,6 +75,7 @@ void nearestNeighbor(std::string filename) {
 
     // Add the distance back to the starting node
     totalDistance += current.distance(visitedNodes.front());
+    visitedNodes.push_back(visitedNodes.front()); // Add the starting node to the end
 
     // Stop the timer
     clock_t endTime = clock();
