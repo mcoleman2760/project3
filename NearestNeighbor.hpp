@@ -96,4 +96,3 @@ private:
         std::cout << "Time in ms: " << duration << "\n";
     }
 };
-
