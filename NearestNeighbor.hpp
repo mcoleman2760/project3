@@ -1,9 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <list>
-#include <ctime>
 #include <cmath>
 #include <vector>
+#include <chrono>
 
 class Node {
 public:
@@ -41,7 +41,7 @@ void nearestNeighbor(std::string filename) {
     file.close();
 
     // Start the timer
-    clock_t startTime = clock();
+    auto startTime = std::chrono::high_resolution_clock::now();
 
     // Start from the first node
     Node current = unvisitedNodes.front();
@@ -78,8 +78,8 @@ void nearestNeighbor(std::string filename) {
     visitedNodes.push_back(visitedNodes.front()); // Add the starting node to the end
 
     // Stop the timer
-    clock_t endTime = clock();
-    double elapsedTime = static_cast<double>(endTime - startTime) / CLOCKS_PER_SEC * 1000.0;
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
 
     // Print the result
     for (const auto& node : visitedNodes) {
