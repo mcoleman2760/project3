@@ -1,105 +1,89 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <ctime>
-#include <algorithm>
 #include <list>
-#include <math.h>
+#include <ctime>
+#include <cmath>
+#include <vector>
 
 class Node {
 public:
-      int id;
+    int id;
     double x, y;
 
-    Node(int node_id, double x_coord, double y_coord) : id(node_id), x(x_coord), y(y_coord) {}
+    Node(int _id, double _x, double _y) : id(_id), x(_x), y(_y) {}
 
+    // Calculate distance between this node and another node
     double distance(const Node& other) const {
-        return sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
-    }
-    // Equality operator
-    bool operator==(const Node& other) const {
-        return id == other.id && x == other.x && y == other.y;
+        double dx = x - other.x;
+        double dy = y - other.y;
+        return std::sqrt(dx * dx + dy * dy);
     }
 };
 
-class LinkedList {
-public:
-    std::list<Node> nodes;
-
-    void addNode(const Node& node) {
-        nodes.push_back(node);
-    }
-
-    void removeNode(const Node& node) {
-        nodes.remove(node);
-    }
-
-    bool empty() const {
-        return nodes.empty();
-    }
-
-    Node front() const {
-        return nodes.front();
-    }
-
-    void popFront() {
-        nodes.pop_front();
-    }
-};
-
-void nearestNeighbor(const std::string& filename) {
+void nearestNeighbor(std::string filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error opening file: " << filename << std::endl;
         return;
     }
 
-    LinkedList unvisited;
-    int node_id;
+    std::list<Node> unvisitedNodes;
+    std::list<Node> visitedNodes;
+
+    int id;
     double x, y;
 
-    // Read node information from the file
-    while (file >> node_id >> x >> y) {
-        unvisited.addNode(Node(node_id, x, y));
+    // Read nodes from the file and create a list of unvisited nodes
+    while (file >> id >> x >> y) {
+        unvisitedNodes.push_back(Node(id, x, y));
     }
 
     file.close();
 
-    clock_t start_time = clock();
+    // Start the timer
+    clock_t startTime = clock();
 
-    Node current_node = unvisited.front();
-    LinkedList visited_nodes;
-    double total_distance = 0;
+    // Start from the first node
+    Node current = unvisitedNodes.front();
+    visitedNodes.push_back(current);
+    unvisitedNodes.pop_front();
 
-    while (!unvisited.empty()) {
-        unvisited.removeNode(current_node);
-        visited_nodes.addNode(current_node);
+    double totalDistance = 0.0;
 
-        auto nearest_neighbor = std::min_element(unvisited.nodes.begin(), unvisited.nodes.end(),
-            [&current_node](const Node& a, const Node& b) {
-                return current_node.distance(a) < current_node.distance(b);
+    // Visit nodes in order until all nodes are visited
+    while (!unvisitedNodes.empty()) {
+        double minDistance = std::numeric_limits<double>::infinity();
+        auto nearestNode = unvisitedNodes.begin();
+
+        // Find the nearest unvisited node
+        for (auto it = unvisitedNodes.begin(); it != unvisitedNodes.end(); ++it) {
+            double dist = current.distance(*it);
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestNode = it;
             }
-        );
+        }
 
-        total_distance += current_node.distance(*nearest_neighbor);
-        current_node = *nearest_neighbor;
+        // Move to the nearest node
+        current = *nearestNode;
+        visitedNodes.push_back(current);
+        unvisitedNodes.erase(nearestNode);
+
+        // Update total distance
+        totalDistance += minDistance;
     }
 
-    // Add the distance from the last node to the starting node
-    total_distance += visited_nodes.nodes.back().distance(visited_nodes.nodes.front());
+    // Add the distance back to the starting node
+    totalDistance += current.distance(visitedNodes.front());
 
-    // Ensure the first node is visited in the end
-    visited_nodes.addNode(visited_nodes.nodes.front());
+    // Stop the timer
+    clock_t endTime = clock();
+    double elapsedTime = static_cast<double>(endTime - startTime) / CLOCKS_PER_SEC * 1000.0;
 
-    clock_t end_time = clock();
-    double execution_time = double(end_time - start_time) / CLOCKS_PER_SEC * 1000;
-
-    // Print the results
-    for (const auto& node : visited_nodes.nodes) {
+    // Print the result
+    for (const auto& node : visitedNodes) {
         std::cout << node.id << " ";
     }
 
-    std::cout << std::endl;
-    std::cout << "Total Distance: " << total_distance << std::endl;
-    std::cout << "Time in ms: " << execution_time << std::endl;
+    std::cout << "\nTotal Distance: " << totalDistance << "\nTime in ms: " << elapsedTime << std::endl;
 }
