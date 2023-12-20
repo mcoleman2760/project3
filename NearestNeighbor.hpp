@@ -65,13 +65,12 @@ void nearestNeighbor(const std::string& filename) {
 
     file.close();
 
-    // Check if nodes start from ID 1
-    if (unvisited.empty() || unvisited.front().id != 1) {
-        std::cerr << "Error: Nodes should start from ID 1." << std::endl;
+    clock_t start_time = clock();
+
+    if (unvisited.empty()) {
+        std::cerr << "Error: No nodes in the input file." << std::endl;
         return;
     }
-
-    clock_t start_time = clock();
 
     Node current_node = unvisited.front();
     LinkedList visited_nodes;
