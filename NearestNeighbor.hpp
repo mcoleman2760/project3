@@ -8,8 +8,9 @@ class Node {
 public:
     int id;
     int x, y;
+    Node* next;
 
-    Node(int id, int x, int y) : id(id), x(x), y(y) {}
+    Node(int id, int x, int y) : id(id), x(x), y(y), next(nullptr) {}
 
     // Calculate Euclidean distance between two nodes
     double distanceTo(const Node& other) const {
@@ -19,29 +20,50 @@ public:
     }
 };
 
+class LinkedList {
+public:
+    Node* head;
+
+    LinkedList() : head(nullptr) {}
+
+    // Add a node to the end of the linked list
+    void append(Node* newNode) {
+        if (head == nullptr) {
+            head = newNode;
+        } else {
+            Node* current = head;
+            while (current->next != nullptr) {
+                current = current->next;
+            }
+            current->next = newNode;
+        }
+    }
+};
+
 class TSPSolver {
 public:
-    std::vector<Node> nearestNeighborTSP(const std::vector<Node>& nodes) {
+    LinkedList nearestNeighborTSP(const std::vector<Node>& nodes) {
         int numNodes = nodes.size();
-        std::vector<Node> tour;
+        LinkedList tour;
         std::vector<bool> visited(numNodes, false);
 
         auto startTime = std::chrono::high_resolution_clock::now();
 
         // Start at node 1
         int startNodeId = 1;
-        tour.push_back(getNodeById(nodes, startNodeId));
+        Node* startNode = findNodeById(nodes, startNodeId);
+        tour.append(startNode);
         visited[startNodeId - 1] = true;
 
-        while (tour.size() < numNodes) {
-            Node current = tour.back();
+        while (tour.head != nullptr && tour.head->next == nullptr) {
+            Node* current = tour.head;
             double minDistance = std::numeric_limits<double>::max();
             int nearestNodeId = -1;
 
             // Find the nearest unvisited node
             for (int i = 0; i < numNodes; ++i) {
                 if (!visited[i]) {
-                    double distance = current.distanceTo(nodes[i]);
+                    double distance = current->distanceTo(nodes[i]);
                     if (distance < minDistance) {
                         minDistance = distance;
                         nearestNodeId = i;
@@ -50,12 +72,10 @@ public:
             }
 
             // Move to the nearest neighbor
-            tour.push_back(nodes[nearestNodeId]);
+            Node* nearestNode = findNodeById(nodes, nearestNodeId + 1);
+            tour.append(nearestNode);
             visited[nearestNodeId] = true;
         }
-
-        // Return to the starting node to complete the tour
-        tour.push_back(getNodeById(nodes, startNodeId));
 
         auto endTime = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
@@ -67,28 +87,32 @@ public:
     }
 
 private:
-    Node getNodeById(const std::vector<Node>& nodes, int id) {
+    Node* findNodeById(const std::vector<Node>& nodes, int id) {
         for (const Node& node : nodes) {
             if (node.id == id) {
-                return node;
+                return new Node(node.id, node.x, node.y);
             }
         }
         // Handle error if the node with the given id is not found
         throw std::invalid_argument("Node not found with ID: " + std::to_string(id));
     }
 
-    void printTourInfo(const std::vector<Node>& tour, long long duration) const {
+    void printTourInfo(const LinkedList& tour, long long duration) const {
         // Output the tour
         std::cout << "Tour: ";
-        for (const Node& node : tour) {
-            std::cout << node.id << " ";
+        Node* current = tour.head;
+        while (current != nullptr) {
+            std::cout << current->id << " ";
+            current = current->next;
         }
         std::cout << "\n";
 
         // Calculate total distance
         double totalDistance = 0.0;
-        for (size_t i = 0; i < tour.size() - 1; ++i) {
-            totalDistance += tour[i].distanceTo(tour[i + 1]);
+        current = tour.head;
+        while (current != nullptr && current->next != nullptr) {
+            totalDistance += current->distanceTo(*(current->next));
+            current = current->next;
         }
 
         // Output total distance and time
