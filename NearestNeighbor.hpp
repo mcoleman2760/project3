@@ -65,6 +65,12 @@ void nearestNeighbor(const std::string& filename) {
 
     file.close();
 
+    // Check if nodes start from ID 1
+    if (unvisited.empty() || unvisited.front().id != 1) {
+        std::cerr << "Error: Nodes should start from ID 1." << std::endl;
+        return;
+    }
+
     clock_t start_time = clock();
 
     Node current_node = unvisited.front();
