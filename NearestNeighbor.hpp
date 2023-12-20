@@ -8,7 +8,7 @@
 
 class Node {
 public:
-      int id;
+    int id;
     double x, y;
 
     Node(int node_id, double x_coord, double y_coord) : id(node_id), x(x_coord), y(y_coord) {}
@@ -16,6 +16,7 @@ public:
     double distance(const Node& other) const {
         return sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
     }
+
     // Equality operator
     bool operator==(const Node& other) const {
         return id == other.id && x == other.x && y == other.y;
@@ -67,11 +68,6 @@ void nearestNeighbor(const std::string& filename) {
 
     clock_t start_time = clock();
 
-    if (unvisited.empty()) {
-        std::cerr << "Error: No nodes in the input file." << std::endl;
-        return;
-    }
-
     Node current_node = unvisited.front();
     LinkedList visited_nodes;
     double total_distance = 0;
@@ -92,9 +88,6 @@ void nearestNeighbor(const std::string& filename) {
 
     // Add the distance from the last node to the starting node
     total_distance += visited_nodes.nodes.back().distance(visited_nodes.nodes.front());
-
-    // Ensure the first node is visited in the end
-    visited_nodes.addNode(visited_nodes.nodes.front());
 
     clock_t end_time = clock();
     double execution_time = double(end_time - start_time) / CLOCKS_PER_SEC * 1000;
