@@ -1,122 +1,82 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
-#include <cmath>
-#include <limits>
-#include <chrono>
+#include <ctime>
+#include <algorithm>
+#include <math.h>
 
 class Node {
 public:
     int id;
-    int x, y;
-    Node* next;
+    double x, y;
 
-    Node(int id, int x, int y) : id(id), x(x), y(y), next(nullptr) {}
+    Node(int node_id, double x_coord, double y_coord) : id(node_id), x(x_coord), y(y_coord) {}
 
-    // Calculate Euclidean distance between two nodes
-    double distanceTo(const Node& other) const {
-        int dx = x - other.x;
-        int dy = y - other.y;
-        return std::sqrt(dx * dx + dy * dy);
+    double distance(const Node& other) const {
+        return sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
+    }
+
+    // Equality operator
+    bool operator==(const Node& other) const {
+        return id == other.id && x == other.x && y == other.y;
     }
 };
 
-class LinkedList {
-public:
-    Node* head;
+void nearestNeighbor(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return;
+    }
 
-    LinkedList() : head(nullptr) {}
+    std::vector<Node> nodes;
+    int node_id;
+    double x, y;
 
-    // Add a node to the end of the linked list
-    void append(Node* newNode) {
-        if (head == nullptr) {
-            head = newNode;
-        } else {
-            Node* current = head;
-            while (current->next != nullptr) {
-                current = current->next;
+    // Read node information from the file
+    while (file >> node_id >> x >> y) {
+        nodes.emplace_back(node_id, x, y);
+    }
+
+    file.close();
+
+    clock_t start_time = clock();
+
+    // Initialize unvisited nodes with all nodes
+    std::vector<Node> unvisited(nodes);
+    Node current_node = nodes[0];
+    std::vector<Node> visited_nodes = {current_node};
+    double total_distance = 0;
+
+    while (!unvisited.empty()) {
+        // Remove the current node from unvisited
+        unvisited.erase(std::remove(unvisited.begin(), unvisited.end(), current_node), unvisited.end());
+
+        // Find the nearest neighbor to the current node
+        auto nearest_neighbor = std::min_element(unvisited.begin(), unvisited.end(),
+            [&current_node](const Node& a, const Node& b) {
+                return current_node.distance(a) < current_node.distance(b);
             }
-            current->next = newNode;
-        }
-    }
-};
+        );
 
-class TSPSolver {
-public:
-    LinkedList nearestNeighborTSP(const std::vector<Node>& nodes) {
-        int numNodes = nodes.size();
-        LinkedList tour;
-        std::vector<bool> visited(numNodes, false);
-
-        auto startTime = std::chrono::high_resolution_clock::now();
-
-        // Start at node 1
-        int startNodeId = 1;
-        Node* startNode = findNodeById(nodes, startNodeId);
-        tour.append(startNode);
-        visited[startNodeId - 1] = true;
-
-        while (tour.head != nullptr && tour.head->next == nullptr) {
-            Node* current = tour.head;
-            double minDistance = std::numeric_limits<double>::max();
-            int nearestNodeId = -1;
-
-            // Find the nearest unvisited node
-            for (int i = 0; i < numNodes; ++i) {
-                if (!visited[i]) {
-                    double distance = current->distanceTo(nodes[i]);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        nearestNodeId = i;
-                    }
-                }
-            }
-
-            // Move to the nearest neighbor
-            Node* nearestNode = findNodeById(nodes, nearestNodeId + 1);
-            tour.append(nearestNode);
-            visited[nearestNodeId] = true;
-        }
-
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
-        // Output the tour and other information
-        printTourInfo(tour, duration.count());
-
-        return tour;
+        // Update total distance and move to the nearest neighbor
+        total_distance += current_node.distance(*nearest_neighbor);
+        current_node = *nearest_neighbor;
+        visited_nodes.push_back(current_node);
     }
 
-private:
-    Node* findNodeById(const std::vector<Node>& nodes, int id) {
-        for (const Node& node : nodes) {
-            if (node.id == id) {
-                return new Node(node.id, node.x, node.y);
-            }
-        }
-        // Handle error if the node with the given id is not found
-        throw std::invalid_argument("Node not found with ID: " + std::to_string(id));
+    // Add the distance from the last node to the starting node
+    total_distance += visited_nodes.back().distance(visited_nodes[0]);
+
+    clock_t end_time = clock();
+    double execution_time = double(end_time - start_time) / CLOCKS_PER_SEC * 1000;
+
+    // Print the results
+    for (const auto& node : visited_nodes) {
+        std::cout << node.id << " ";
     }
 
-    void printTourInfo(const LinkedList& tour, long long duration) const {
-        // Output the tour
-        std::cout << "Tour: ";
-        Node* current = tour.head;
-        while (current != nullptr) {
-            std::cout << current->id << " ";
-            current = current->next;
-        }
-        std::cout << "\n";
-
-        // Calculate total distance
-        double totalDistance = 0.0;
-        current = tour.head;
-        while (current != nullptr && current->next != nullptr) {
-            totalDistance += current->distanceTo(*(current->next));
-            current = current->next;
-        }
-
-        // Output total distance and time
-        std::cout << "Total Distance: " << totalDistance << "\n";
-        std::cout << "Time in ms: " << duration << "\n";
-    }
-};
+    std::cout << std::endl;
+    std::cout << "Total Distance: " << total_distance << std::endl;
+    std::cout << "Time in ms: " << execution_time << std::endl;
+}
