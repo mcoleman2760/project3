@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <math.h>
+#include <chrono>
 
 class Node {
 public:
@@ -49,18 +50,20 @@ public:
 };
 
 void nearestNeighbor(std::string filename) {
+    int duration;
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error opening file: " << filename << std::endl;
         return;
     }
+    auto start = std::chrono::high_resolution_clock::now();
 
     LinkedList unvisited;
     int node_id;
     int x, y;
 
     // Read node information from the file
-    while (file >> node_id ) {
+    while (file >> node_id >> x >> y) {
         unvisited.addNode(Node(node_id, x, y));
     }
 
@@ -92,16 +95,21 @@ void nearestNeighbor(std::string filename) {
 
     // Ensure the first node is visited in the end
     visited_nodes.addNode(start_node);
-
-    clock_t end_time = clock();
-    int execution_time = double(end_time - start_time) / CLOCKS_PER_SEC * 1000;
+    //clock
+  //  clock_t end_time = clock();
+   // int execution_time = double(end_time - start_time) / CLOCKS_PER_SEC * 1000;
+    //chrono
+     
 
     // Print the results
     for (const auto& node : visited_nodes.nodes) {
         std::cout << node.id << " ";
     }
 
+    auto stop = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+    
     std::cout << std::endl;
     std::cout << "Total Distance: " << total_distance << std::endl;
-    std::cout << "Time in ms: " << execution_time << std::endl;
+    std::cout << "Time in ms: " << duration << std::endl;
 }
